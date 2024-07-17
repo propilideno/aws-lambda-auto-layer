@@ -2,8 +2,8 @@
 
 # Define the list of Python libraries
 LIBRARIES=(
-    "pandas"
 	"azure-storage-blob"
+	"pandas pyarrow fastparquet"
 )
 
 # Function to build and deploy Lambda layers
@@ -13,14 +13,17 @@ build_layers() {
     for LIBRARY in "${LIBRARIES[@]}"; do
         echo "Building layer for $LIBRARY..."
 
+		# Translate spaces to underscore
+		LIBRARY_NORMALIZED_NAME=$(echo $LIBRARY | tr " " "_" )
+
         # Create directory for the library
-        mkdir -p lib/$LIBRARY/python
+        mkdir -p lib/$LIBRARY_NORMALIZED_NAME/python
 
         # Install the library into its directory
-        pip install $LIBRARY -t lib/$LIBRARY/python
+		pip install -t lib/$LIBRARY_NORMALIZED_NAME/python $LIBRARY
 
         # Zip the library directory
-        bash -c "cd lib/$LIBRARY && zip -r $ROOT_PATH/lib/$LIBRARY.zip python"
+        bash -c "cd lib/$LIBRARY_NORMALIZED_NAME && zip -r $ROOT_PATH/lib/$LIBRARY_NORMALIZED_NAME.zip python"
     done
     echo "All Lambda Layers deployed successfully."
 }
@@ -46,5 +49,5 @@ deploy_layers(){
     done
 }
 
-#build_layers
+build_layers
 deploy_layers
